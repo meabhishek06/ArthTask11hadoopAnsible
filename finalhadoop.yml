@@ -1,0 +1,82 @@
+
+- name: Configure Hadoop for master
+  hosts: localhost
+  tasks:
+    - name: Download Hadoop RPM file
+      get_url:
+        url: https://archive.apache.org/dist/hadoop/core/hadoop-1.2.1/hadoop-1.2.1-1.x86_64.rpm
+        dest: /Arth/task11
+    - name: Download JDK file
+      get_url:
+        url: http://35.244.242.82/yum/java/el7/x86_64/jdk-8u171-linux-x64.rpm
+        dest: /Arth/task11
+    - name: Checking installation
+      command: rpm -q hadoop
+      register: done
+      ignore_errors: yes
+    - name: Install JDK rpm from a local file
+      command: rpm -ivh jdk-8u171-linux-x64.rpm
+      register: jdkInstalled
+      when: done.rc!=0
+    - name: Install hadoop rpm from a local file
+      command: rpm -ivh hadoop-1.2.1-1.x86_64.rpm --force
+      register: hadoopInstalled
+      when: done.rc!=0
+    - name: Configuring hdfs-site.xml file
+      copy:
+       src: /Arth/task11/hdfs-site.xml
+       dest: /etc/hadoop/
+    - name: Configuring core-site.xml file
+      copy:
+       src: ./core-site.xml
+       dest: /etc/hadoop/
+    - name: Checking hadoop is running or not
+      shell: jps | grep NameNode
+      register: run
+      ignore_errors: yes
+    - name: Formatting namenode & running namenode
+      command: echo Y | hadoop namenode -format
+      command: hadoop-daemon.sh start namenode
+      when: run.rc!=0 
+
+- name: Configure Hadoop for slave
+  hosts: 13.127.99.123
+  tasks:
+    - name: Download Hadoop RPM file
+      get_url:
+        url: https://archive.apache.org/dist/hadoop/core/hadoop-1.2.1/hadoop-1.2.1-1.x86_64.rpm
+        dest: /Arth/task11/
+    - name: Download JDK file
+      get_url:
+        url: http://35.244.242.82/yum/java/el7/x86_64/jdk-8u171-linux-x64.rpm
+        dest: /Arth/task11
+    - name: Checking installation
+      command: rpm -q hadoop
+      register: done
+      ignore_errors: yes
+    - name: Install JDK rpm from a local file
+      command: rpm -ivh jdk-8u171-linux-x64.rpm
+      register: jdkInstalled
+      when: done.rc!=0
+    - name: Install hadoop rpm from a local file
+      command: rpm -ivh hadoop-1.2.1-1.x86_64.rpm --force
+      register: hadoopInstalled
+      when: done.rc!=0
+    - name: Configuring hdfs-site.xml file
+      copy:
+       src: /Arth/task11/hdfs-site.xml
+       dest: /etc/hadoop/
+    - name: Configuring core-site.xml file
+      copy:
+       src: ./core-site.xml
+       dest: /etc/hadoop/
+    - name: Checking hadoop is running or not
+      shell: jps | grep DataNode
+      register: run
+      ignore_errors: yes
+    - name: Running datanode
+      command: hadoop-daemon.sh start datanode
+      when: run.rc!=0
+
+
+                                                        
